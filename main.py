@@ -104,10 +104,10 @@ try:
                 start_time = get_time(splitted_line[START_TIME_POS])
                 end_time = get_time(splitted_line[END_TIME_POS])
                 preferred_temp = float(splitted_line[PREF_TEMP_POS])
-                log_message("Checking time {} and {} for temp {.1f}".format(start_time, end_time, preferred_temp))
+                log_message("Checking time {} and {} for temp {:.1f}".format(start_time, end_time, preferred_temp))
                 if end_time > now.time() >= start_time:
                     current_temp = get_current_temp()
-                    log_message("Current temprature is: {.2f}".format(current_temp))
+                    log_message("Current temprature is: {:.2f}".format(current_temp))
                     if current_temp >= preferred_temp + 1.0:
                         log_message('It gets hot with {:.1f}oC - {:.1f} is preferred'.format(current_temp, preferred_temp))
                         turn_off_heater()
