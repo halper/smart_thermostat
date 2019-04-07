@@ -48,33 +48,31 @@ def get_sensor_data():
     # ADDR HUM TEMP HEAT_INDEX - separated with tab
     ser.write(PI_COMMANDS['GET_DATA'])
     time.sleep(2)
-    sensor_data = SensorData('{}'.format(ser.readline().decode().strip()))
+    sensor_raw_data = ser.readline().decode().strip()
+    log_message(sensor_raw_data)
+    sensor_data = SensorData('{}'.format(sensor_raw_data))
     return sensor_data
 
 
 def turn_off_heater():
     if get_heater_status() == 'OFF':
         return
-    logger.info('Turning off the heater!')
-    ser.flushOutput()
+    log_message('Turning off the heater!')
     ser.write(PI_COMMANDS['HEATER_OFF'])
 
 
 def turn_on_heater():
     if get_heater_status() == 'ON':
         return
-    logger.info('Turning on the heater!')
+    log_message('Turning on the heater!')
     ser.write(PI_COMMANDS['HEATER_ON'])
 
 
 def get_heater_status():
     # returns ON or OFF
-    #ser.flushOutput()
     ser.write(PI_COMMANDS['HEATER_STATUS'])
-    #time.sleep(3)
-    #ser.flushInput()
     heater_status = ser.readline().decode().strip()
-    logger.info('Heater Status is ' + heater_status)
+    log_message('Heater Status is ' + heater_status)
     return heater_status
 
 
@@ -104,8 +102,8 @@ try:
                 start_time = get_time(splitted_line[START_TIME_POS])
                 end_time = get_time(splitted_line[END_TIME_POS])
                 preferred_temp = float(splitted_line[PREF_TEMP_POS])
-                log_message("Checking time {} and {} for temp {:.1f}".format(start_time, end_time, preferred_temp))
                 if end_time > now.time() >= start_time:
+                    log_message("Checking record for {} - {} for temp {:.1f}".format(start_time, end_time, preferred_temp))
                     current_temp = get_current_temp()
                     log_message("Current temprature is: {:.2f}".format(current_temp))
                     if current_temp >= preferred_temp + 1.0:
