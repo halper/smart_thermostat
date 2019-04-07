@@ -36,10 +36,12 @@ def get_time(time_string):
 
 
 def get_current_temp():
-    avg_temp = get_sensor_data().get_temp()
+    sensor_data = get_sensor_data()
+    avg_temp = sensor_data.get_temp()
     for i in range(0, 9):
         avg_temp += get_sensor_data().get_temp()
         time.sleep(.200)
+    log_message(sensor_data.print_sensor_data())
     return avg_temp / 10.0
 
 
@@ -49,7 +51,6 @@ def get_sensor_data():
     ser.write(PI_COMMANDS['GET_DATA'])
     time.sleep(2)
     sensor_raw_data = ser.readline().decode().strip()
-    log_message(sensor_raw_data)
     sensor_data = SensorData('{}'.format(sensor_raw_data))
     return sensor_data
 
