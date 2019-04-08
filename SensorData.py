@@ -19,4 +19,4 @@ class SensorData:
         return self.hi
 
     def print_sensor_data(self):
-        return 'Addr:{} - Temp: {:.2f} - Hum: {:.2f} - HI: {:.2f}'.format(self.addr, self.temp, self.hum, self.hi)
+        return 'Addr: {} - Temp: {:.2f} - Hum: {:.2f} - HI: {:.2f}'.format(self.addr, self.temp, self.hum, self.hi)

@@ -85,7 +85,6 @@ def get_heater_status():
     # returns ON or OFF
     ser.write(PI_COMMANDS['HEATER_STATUS'])
     heater_status = ser.readline().decode().strip()
-    log_message('Heater Status is ' + heater_status)
     return heater_status
 
 
