@@ -106,7 +106,7 @@ def set_the_heater(pref_temp):
         turn_on_heater()
         is_set = True
     if not is_set:
-        log_message('Heater is already set!')
+        log_message('Heater is already set to {}!'.format(get_heater_status()))
 
 
 try:
