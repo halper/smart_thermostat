@@ -37,10 +37,10 @@ def get_time(time_string):
 
 def get_current_temp():
     sensor_data = get_sensor_data()
-    avg_temp = sensor_data.get_temp()
+    avg_temp = sensor_data.get_hi()
     for i in range(0, 9):
-        avg_temp += get_sensor_data().get_temp()
-        time.sleep(.200)
+        avg_temp += get_sensor_data().get_hi()
+        time.sleep(.300)
     log_message(sensor_data.print_sensor_data())
     return avg_temp / 10.0
 
@@ -116,7 +116,7 @@ try:
                     else:
                         log_message('The temp is just right {:.1f}oC - {:.1f} is preferred'.format(current_temp, preferred_temp))
                     break
-        log_message('Sleeping for 30 seconds')
-        time.sleep(30)
+        log_message('Sleeping for two minutes')
+        time.sleep(120)
 finally:
     GPIO.cleanup()
