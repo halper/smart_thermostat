@@ -1,0 +1,4 @@
+#define CHANNEL 1
+#define RADDRESS {0x1LL, 0x2LL}
+#define MASTER_ADDRESS_POS 0
+#define HEATER_ADDRESS_POS 1
