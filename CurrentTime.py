@@ -1,10 +1,10 @@
-from datetime import datetime
+import datetime
 
 
 class CurrentTime:
 
     def __init__(self):
-        now = datetime.now()
+        now = datetime.datetime.now()
         self.weekday = now.strftime('%w')
         self.hour = now.strftime('%H')
         self.minute = now.strftime('%M')
