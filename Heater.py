@@ -6,6 +6,7 @@ from TempSensor import TempSensor
 class Heater:
     LAST_STAT = 'NONE'
     STATUS_LAST_CHECK = -1
+    COMMANDS = {'ON', 'OFF'}
 
     def __init__(self, ser):
         self.ser = ser
@@ -19,7 +20,7 @@ class Heater:
 
     def switch_burner(self, on_off_command):
         on_off_command = str.upper(on_off_command)
-        if on_off_command != 'ON' or on_off_command != 'OFF':
+        if on_off_command not in self.COMMANDS:
             get_logger().error('Heater\'s burner stat is not right! {}'.format(on_off_command))
             return False
         if self.check_status(on_off_command):
@@ -50,7 +51,7 @@ class Heater:
     def get_status(self):
         # returns ON or OFF
         # update status every 30 minutes
-        if self.LAST_STAT == 'NONE' or self.STATUS_LAST_CHECK + timedelta(minutes=30):
+        if self.LAST_STAT == 'NONE' or self.STATUS_LAST_CHECK + timedelta(minutes=30) <= datetime.now():
             self.ser.write(PI_COMMANDS['HEATER_STATUS'])
             self.LAST_STAT = self.ser.readline().decode().strip()
             self.STATUS_LAST_CHECK = datetime.now()
