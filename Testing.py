@@ -7,7 +7,6 @@ ser.baudrate = 9600
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(11, GPIO.OUT)
-line_break = False
 def print_commands():
     my_str = ""
     my_str += "0. Get data\n"
@@ -35,12 +34,8 @@ try:
         while True:
             read_ser = ser.readline().decode().strip()
             print('{}'.format(read_ser))
-            if read_ser == '\n' and line_break:
+            if read_ser == '':
                 break
-            elif read_ser == '\n':
-                line_break = True
-            else:
-                line_break = False
         print('Break out of while')
         print_commands()
 except Exception as e:
