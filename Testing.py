@@ -18,27 +18,31 @@ def print_commands():
     print(my_str)
 try:
     # wait for setup phase
+
     while True:
+        read_ser = ser.readline().decode().strip()
+        print('{}'.format(read_ser))
+        if '4. Test the connection' in read_ser:
+            time.sleep(2)
+            break
+
+    while True:
+        text = -1
+        while text not in {'0', '1', '2', '3', '4'}:
+            text = input("Select a command: ")
+        ser.write(str.encode(text))
+        time.sleep(2)
         while True:
             read_ser = ser.readline().decode().strip()
             print('{}'.format(read_ser))
-            if '4. Test the connection' in read_ser:
-                time.sleep(2)
-                break
-            elif read_ser == '\n' and line_break:
+            if read_ser == '\n' and line_break:
                 break
             elif read_ser == '\n':
                 line_break = True
             else:
                 line_break = False
         print('Break out of while')
-        while True:
-            text = -1
-            while text not in {'0', '1', '2', '3', '4'}:
-                print_commands()
-                text = input("Select a command: ")
-            ser.write(str.encode(text))
-            time.sleep(2)
+        print_commands()
 except Exception as e:
     print(e)
 finally:

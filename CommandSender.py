@@ -27,7 +27,6 @@ try:
     while True:
         text = -1
         while text not in {'0', '1', '2', '3', '4'}:
-            print_commands()
             text = input("Select a command: ")
         ser.write(str.encode(text))
         time.sleep(2)
