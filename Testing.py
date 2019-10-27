@@ -31,9 +31,11 @@ try:
             text = input("Select a command: ")
         ser.write(str.encode(text))
         time.sleep(2)
+        read_ser = ''
         for line in ser.readline().decode():
-            read_ser = line.strip()
-            print('{}'.format(read_ser))
+            read_ser += line.strip()
+            if read_ser == '\n':
+                print('{}'.format(read_ser))
 
         print('Break out of while')
         print_commands()
