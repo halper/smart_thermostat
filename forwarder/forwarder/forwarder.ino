@@ -3,14 +3,14 @@
 #include "RF24.h"
 
 // Defines constants
-// #include "/Users/alper/Documents/MyProj/PiDuinoController/config.h"
+#include "/Users/alper/Documents/MyProj/PiDuinoController/config.h"
 
 RF24 radio(9,10);
 // This must be same accross all nodes!!!
 const uint64_t rAddress[] = {0x7878787878LL, 0xB3B4B5B6F1LL, 0x34BA33DDF2LL};
-const uint64_t masterAddress = rAddress[0];
-const uint64_t heaterAddress = rAddress[1];
-const uint64_t forwarderAddress = rAddress[2];
+const uint64_t masterAddress = rAddress[MASTER_ADDRESS_POS];
+const uint64_t heaterAddress = rAddress[HEATER_ADDRESS_POS];
+const uint64_t forwarderAddress = rAddress[FORWARDER_ADDRESS_POS];
 const uint64_t selfAddress = forwarderAddress;
 
 // This must be same accross all nodes!!!

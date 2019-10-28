@@ -7,6 +7,12 @@ ser.baudrate = 9600
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(11, GPIO.OUT)
+def read_serial(ser):
+    read_ser = ''
+    for line in ser.readline().decode():
+        read_ser += line.strip()
+        if read_ser == '\n':
+            print('{}'.format(read_ser))
 def print_commands():
     my_str = ""
     my_str += "0. Get data\n"
@@ -31,11 +37,8 @@ try:
             text = input("Select a command: ")
         ser.write(str.encode(text))
         time.sleep(2)
-        read_ser = ''
-        for line in ser.readline().decode():
-            read_ser += line.strip()
-            if read_ser == '\n':
-                print('{}'.format(read_ser))
+        read_serial(ser)
+        read_serial(ser)
 
         print('Break out of while')
         print_commands()
