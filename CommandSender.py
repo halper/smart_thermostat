@@ -9,11 +9,8 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setup(11, GPIO.OUT)
 
 def read_serial(passed_ser):
-    read_ser = ''
-    for line in passed_ser.readline().decode():
-        read_ser += line.strip()
-        if read_ser == '\n':
-            print('{}'.format(read_ser))
+    read_ser = passed_ser.readline().decode().strip()
+    print(read_ser)
 
 def print_commands():
     my_str = ""
