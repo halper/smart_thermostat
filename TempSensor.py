@@ -9,11 +9,15 @@ class TempSensor:
         self.ser = ser
 
     def get_current_temp(self):
-        sensor_data = self.get_sensor_data()
-        avg_temp = sensor_data.get_hi()
-        for i in range(0, 9):
-            avg_temp += self.get_sensor_data().get_hi()
-        log_message(sensor_data.print_sensor_data())
+        avg_temp = 0
+        try:
+            sensor_data = self.get_sensor_data()
+            avg_temp = sensor_data.get_hi()
+            for i in range(0, 9):
+                avg_temp += self.get_sensor_data().get_hi()
+            log_message(sensor_data.print_sensor_data())
+        except ValueError as e:
+            self.get_current_temp()
         return avg_temp / 10.0
 
     def get_sensor_data(self):
