@@ -42,7 +42,7 @@ void setup() {
   radio.setChannel( CHANNEL );
   radio.setAutoAck(true);
   radio.enableAckPayload();
-  if (isForwarding) radio.openReadingPipe(1, selfAddress);
+  radio.openReadingPipe(1, selfAddress);
   radio.openWritingPipe(isForwarding ? forwarderAddress: heaterAddress);
   radio.stopListening();
   radio.setRetries(15,15); // delay, count
@@ -131,30 +131,10 @@ HeaterRequest forwardRequest(HeaterRequest command){
   return isRequestSent ? getRequestResponse() : NONE;
 }
 
-HeaterRequest sendCommandToHeaterArduino(HeaterRequest command) {
-  HeaterRequest incomingAck = NONE;
-  int numOfSuccess = 0;
-  bool timeout = false;
-  unsigned long waitStart = micros(); // Set up a timeout period, get the current microseconds
-    
-  while(numOfSuccess < 5 && ! timeout) {      
-    // There is buffering so we need to probe it min 3 times to get updated data
-    if(radio.write( &command, sizeof(HeaterRequest) )) {
-      if(radio.isAckPayloadAvailable()){
-        numOfSuccess++;
-        radio.read(&incomingAck, sizeof(HeaterRequest) );
-      }      
-      delay(30);
-    }
-    timeout = micros() - waitStart > timeoutPeriod;
-  }
-  return timeout ? NONE : incomingAck;
-}
-
 HeaterRequest passCommandToReceiver(HeaterRequest command) {
   // this function sends heaterRequest to the arduino attached to the heater
   // if there is an error NONE signal is sent
-  return isForwarding ? forwardRequest(command): sendCommandToHeaterArduino(command);
+  return forwardRequest(command);
 }
 
 HeaterRequest getStatusOfHeater() {

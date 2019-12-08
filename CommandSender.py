@@ -8,9 +8,9 @@ ser.baudrate = 9600
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(11, GPIO.OUT)
 
-def read_serial(ser):
+def read_serial(passed_ser):
     read_ser = ''
-    for line in ser.readline().decode():
+    for line in passed_ser.readline().decode():
         read_ser += line.strip()
         if read_ser == '\n':
             print('{}'.format(read_ser))
