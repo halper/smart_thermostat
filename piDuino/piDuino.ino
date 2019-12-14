@@ -187,9 +187,7 @@ Record getSensorData(uint64_t addr){
     if( radio.write( &transmitting, sizeof(char) ) ) {
       // set  radio.enableAckPayload(); and
       // struct tempHumRecord on the other nRF
-      if ( radio.isAckPayloadAvailable() ) {
-        radio.read(&rec, sizeof(Record)); 
-      }
+      // wait for reading
     }
   }
   return rec;

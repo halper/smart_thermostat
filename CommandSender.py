@@ -2,7 +2,7 @@ import serial
 import RPi.GPIO as GPIO
 import time
 
-ser = serial.Serial("/dev/ttyUSB0", 9600)  # change ACM number as found from ls /dev/tty/ACM*
+ser = serial.Serial("/dev/ttyUSB0", 9600, timeout=30)  # change ACM number as found from ls /dev/tty/ACM*
 ser.baudrate = 9600
 
 GPIO.setmode(GPIO.BOARD)
@@ -32,8 +32,10 @@ try:
         text = -1
         while text not in {'0', '1', '2', '3', '4'}:
             text = input("Select a command: ")
+        ser.flushOutput()  # Clear output buffer
         ser.write(str.encode(text))
         time.sleep(2)
+        ser.flushInput()  # Clear input buffer
         read_serial(ser)
         read_serial(ser)
 except Exception as e:

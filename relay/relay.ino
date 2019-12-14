@@ -41,13 +41,13 @@ void setup() {
   currentStat = ON;
   // if NC is used HIGH turns on else if NO is used HIGH turns off
   digitalWrite(relay, connectedToNC ? HIGH : LOW);
-  //radio.printDetails();  
+  radio.startListening();  
 }
 
 void loop() {
   // listen for the incoming message
   // set the switch state accordingly
-  delay(500);
+  // delay(500);  
   heaterReq = getIncomingState();
   switch (heaterReq) {
     case ON:
@@ -75,15 +75,12 @@ bool isRadioAvailable() {
 }
 
 HeaterRequest getIncomingState() {
-  radio.startListening();
   HeaterRequest newState = NONE;
   if ( isRadioAvailable() ){
       Serial.println("Receiving radio signal");      
       radio.read( &newState, sizeof(HeaterRequest) ); 
       Serial.println(newState); 
-  }
-  radio.stopListening();
-  
+  }  
   return newState; 
 }
 
@@ -92,19 +89,20 @@ bool replyBack(HeaterRequest stat) {
   radio.stopListening();
   bool timeout = false;
   unsigned long waitStart = micros(); // Set up a timeout period, get the current microseconds
-  
-  while(!timeout) {
+  bool isSent = false;
+  while(!timeout && !isSent) {
+    delay(500);
     timeout = micros() - waitStart > timeoutPeriod;
     if(radio.write( &stat, sizeof(HeaterRequest) )) {
       if(radio.isAckPayloadAvailable()){ // clears the internal flag which indicates a payload is available
         HeaterRequest temp = NONE; // we don't need ack response from this transmission so getting rid of it
         radio.read(&temp, sizeof(HeaterRequest));
       }
-      return true;
-    }
+      isSent = true;
+    }    
   }
-  Serial.println("ERROR: Could not forward request!");
-  return false;
+  radio.startListening();
+  return !timeout;
 }
 
 void switchHeater(HeaterRequest incomingHR) {

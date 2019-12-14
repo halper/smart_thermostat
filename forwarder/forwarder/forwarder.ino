@@ -52,7 +52,7 @@ void loop() {
 void forwardAckedRequestToMaster(HeaterRequest ackedRequest) {
   int numOfTries = 5;
   if(isSignalValid(ackedRequest)) {
-    Serial.print("INFO: getAckedRequest is successfull - ");
+    Serial.print("INFO: getAckedRequest is successful - ");
     Serial.println(ackedRequest);
     while(!isSignalValid(forwardIncomingRequest(ackedRequest, masterAddress)) && numOfTries--) {
       delay(500);
