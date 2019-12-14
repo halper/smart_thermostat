@@ -36,6 +36,7 @@ try:
         time.sleep(2)
         read_serial(ser)
         if text == '3':
+            time.sleep(10)
             read_serial(ser)
             read_serial(ser)
         print('\n')
