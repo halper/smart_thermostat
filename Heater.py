@@ -49,7 +49,7 @@ class Heater:
     def set_status(self, pref_temp):
         avg_temp = self.tempSensor.get_avg_temp()
         log_message("Average temperature for the last 5 minutes is: {:.2f}".format(avg_temp))
-        if avg_temp >= pref_temp + 1.0:
+        if avg_temp >= pref_temp + 0.3:
             if self.turn_off():
                 log_message('It gets hot with {:.1f}oC - {:.1f}oC is preferred'.format(avg_temp, pref_temp))
         elif avg_temp <= pref_temp - 0.5:
