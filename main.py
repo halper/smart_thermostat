@@ -5,6 +5,7 @@ from Utilities import get_logger, log_message
 from Schedule import Schedule
 from Heater import Heater
 from TempSensor import TempSensor
+from datetime import datetime, timedelta
 
 logger = get_logger()
 
@@ -29,9 +30,10 @@ try:
     while True:
         log_message("Reading schedule file")
         HEATER.set_status(schedule.get_pref_temp())
-        for i in range(20):
+        set_status_time = datetime.now()
+        while datetime.now() - set_status_time < timedelta(minutes=5):
             current_temp = TEMP_SENSOR.get_current_temp()
             TEMP_SENSOR.temperature_readings.append(current_temp)
-            time.sleep(15)
+            time.sleep(5)
 finally:
     GPIO.cleanup()
