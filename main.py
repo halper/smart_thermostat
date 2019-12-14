@@ -31,7 +31,7 @@ try:
         HEATER.set_status(schedule.get_pref_temp())
         for i in range(20):
             current_temp = TEMP_SENSOR.get_current_temp()
-            TEMP_SENSOR.temperature_readings.push(current_temp)
+            TEMP_SENSOR.temperature_readings.append(current_temp)
             time.sleep(15)
 finally:
     GPIO.cleanup()
