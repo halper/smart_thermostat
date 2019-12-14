@@ -35,9 +35,9 @@ try:
         ser.flushOutput()  # Clear output buffer
         ser.write(str.encode(text))
         time.sleep(2)
+        read_serial(ser)
+        read_serial(ser)
         ser.flushInput()  # Clear input buffer
-        read_serial(ser)
-        read_serial(ser)
 except Exception as e:
     print(e)
 finally:
