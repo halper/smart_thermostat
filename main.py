@@ -28,6 +28,6 @@ try:
         log_message("Reading schedule file")
         HEATER.set_status(schedule.get_pref_temp())
         log_message('Sleeping for 5 minutes!')
-        time.sleep(10)
+        time.sleep(300)
 finally:
     GPIO.cleanup()
