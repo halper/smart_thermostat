@@ -35,6 +35,9 @@ try:
         ser.write(str.encode(text))
         time.sleep(2)
         read_serial(ser)
+        if text == '3':
+            read_serial(ser)
+            read_serial(ser)
         print('\n')
 except Exception as e:
     print(e)
