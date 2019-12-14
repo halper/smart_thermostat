@@ -4,6 +4,7 @@ import RPi.GPIO as GPIO
 from Utilities import get_logger, log_message
 from Schedule import Schedule
 from Heater import Heater
+from TempSensor import TempSensor
 
 logger = get_logger()
 
@@ -13,6 +14,7 @@ GPIO.setmode(GPIO.BOARD)
 GPIO.setup(11, GPIO.OUT)
 
 HEATER = Heater(ser)
+TEMP_SENSOR = TempSensor(ser)
 schedule = Schedule('schedule')
 
 try:
@@ -27,7 +29,9 @@ try:
     while True:
         log_message("Reading schedule file")
         HEATER.set_status(schedule.get_pref_temp())
-        log_message('Sleeping for 5 minutes!')
-        time.sleep(300)
+        for i in range(20):
+            current_temp = TEMP_SENSOR.get_current_temp()
+            TEMP_SENSOR.temperature_readings.push(current_temp)
+            time.sleep(15)
 finally:
     GPIO.cleanup()
