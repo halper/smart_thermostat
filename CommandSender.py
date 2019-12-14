@@ -24,18 +24,18 @@ try:
     while True:
         read_ser = ser.readline().decode().strip()
         print('{}'.format(read_ser))
-        if '4. Test the connection' in read_ser:
+        if '3. Test the connection' in read_ser:
             time.sleep(2)
             break
     while True:
         text = -1
+        print_commands()
         while text not in {'0', '1', '2', '3'}:
             text = input("Select a command: ")
-        ser.flushOutput()  # Clear output buffer
         ser.write(str.encode(text))
         time.sleep(2)
         read_serial(ser)
-        ser.flushInput()  # Clear input buffer
+        print('\n')
 except Exception as e:
     print(e)
 finally:
