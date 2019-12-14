@@ -14,22 +14,27 @@ const uint64_t forwarderAddress = rAddress[FORWARDER_ADDRESS_POS];
 const uint64_t selfAddress = forwarderAddress;
 
 // This must be same accross all nodes!!!
-typedef enum hr{ NO_SIG, ON, OFF, SEND, NONE } HeaterRequest;
+typedef enum hr{ NO_SIG, ON, OFF, NONE } HeaterRequest;
 const long timeoutPeriod = 10000000;
+
+void setupRadio() {
+  radio.begin();  
+  radio.setDataRate( RF24_250KBPS );
+  delay(100);
+  radio.setPALevel(RF24_PA_MAX);
+  radio.setChannel( CHANNEL );
+  //radio.enableAckPayload();
+  radio.setRetries(3, 15); // delay, count
+  // Open a single pipe for PRX to receive data
+  radio.setPayloadSize(sizeof(HeaterRequest));
+  radio.openReadingPipe(1, selfAddress);
+  radio.openWritingPipe(heaterAddress);
+  radio.startListening(); // receive incoming requests from master node
+}
 
 void setup() {
   Serial.begin(9600);
-  radio.begin();
-  delay(500);  
-  radio.setAutoAck(true);
-  radio.setPALevel(RF24_PA_MAX);
-  radio.setChannel( CHANNEL );
-  radio.enableAckPayload();
-  //radio.openWritingPipe(heaterAddress);
-  radio.setRetries(15,15); // delay, count
-  // Open a single pipe for PRX to receive data
-  radio.openReadingPipe(1, selfAddress);
-  radio.startListening();
+  setupRadio();
 }
 
 void loop() {
@@ -41,89 +46,32 @@ void loop() {
  
   // Listen incoming request from master
   // Forward it to the heater node
-  // Forward incoming Ack Result to the master node
+  while ( ! radio.available() );
   HeaterRequest incomingRequest = getIncomingRequest();
-  HeaterRequest ackedRequest = getAckedRequest(incomingRequest);
-  forwardAckedRequestToMaster(ackedRequest);
-  delay(500);
-
+  forwardRequestToHeater(incomingRequest);
 }
 
-void forwardAckedRequestToMaster(HeaterRequest ackedRequest) {
-  int numOfTries = 5;
-  if(isSignalValid(ackedRequest)) {
-    Serial.print("INFO: getAckedRequest is successful - ");
-    Serial.println(ackedRequest);
-    while(!isSignalValid(forwardIncomingRequest(ackedRequest, masterAddress)) && numOfTries--) {
-      delay(500);
-    }
-  }
-}
-
-HeaterRequest forwardIncomingRequest(HeaterRequest incomingRequest, uint64_t nodeAddress) {
-  radio.openWritingPipe(nodeAddress);
-  Serial.print("Forwarding request to ");
-  Serial.println(nodeAddress == masterAddress ? "Master node": "Heater node");  
-  return sendRequest(incomingRequest) ? incomingRequest : NONE;
-}
-
-bool sendRequest(HeaterRequest command) {
+void forwardRequestToHeater(HeaterRequest command) {
   radio.stopListening();
-  bool timeout = false;
-  unsigned long waitStart = micros(); // Set up a timeout period, get the current microseconds
-  bool isSent = false;
-  while(!timeout && !isSent) {
-    timeout = micros() - waitStart > timeoutPeriod;
-    if(radio.write( &command, sizeof(HeaterRequest) )) {
-      if(radio.isAckPayloadAvailable()){ // clears the internal flag which indicates a payload is available
-        HeaterRequest temp = NONE; // we don't need ack response from this transmission so getting rid of it
-        radio.read(&temp, sizeof(HeaterRequest));
-      }
-      Serial.print("Request is sent! ");
-      Serial.println(command);
-      isSent = true;
-    }
+  if(radio.write( &command, sizeof(HeaterRequest) )) {
+    Serial.print("Request is sent! ");
+    Serial.println(command);
+  } else {
+    Serial.println("ERROR Request is not sent!");
   }
   radio.startListening();
-  return !timeout;
-}
-
-HeaterRequest forwardIncomingRequestToHeater(HeaterRequest incomingRequest) {
-  radio.openWritingPipe(heaterAddress);
-  bool isRequestSent = sendRequest(incomingRequest);
-  return isRequestSent ? getIncomingRequest() : NONE;
-}
-
-HeaterRequest getAckedRequest(HeaterRequest incomingRequest) {
-  if(incomingRequest == NO_SIG) {
-    return NO_SIG;
-  }
-  return forwardIncomingRequestToHeater(incomingRequest);
 }
 
 HeaterRequest getIncomingRequest() {
-  HeaterRequest incomingRequest = NO_SIG;
-  if(isRadioAvailable()){
-    radio.read( &incomingRequest, sizeof(HeaterRequest) );
-    if(isSignalValid(incomingRequest)) {
-      Serial.print("INFO: Received incoming request - ");
-      Serial.println(incomingRequest);
-    } else {
-      Serial.println("ERROR: Couldn't read incoming request!");
-    }
-    return incomingRequest;
+  HeaterRequest incomingRequest = NO_SIG;  
+  radio.read( &incomingRequest, sizeof(HeaterRequest) );
+  if(isSignalValid(incomingRequest)) {
+    Serial.print("INFO: Received incoming request - ");
+    Serial.println(incomingRequest);
+  } else {
+    Serial.println("ERROR: Couldn't read incoming request!");
   }
-}
-
-bool isRadioAvailable() {
-  unsigned long waitStart = micros(); // Set up a timeout period, get the current microseconds
-  Serial.println("Listening for radio...");
-  while ( ! radio.available() ){        // While nothing is received
-    if (micros() - waitStart > timeoutPeriod ){
-        return false;
-    }    
- }
- return true;
+  return incomingRequest;
 }
 
 bool isSignalValid(HeaterRequest statusSignal) {

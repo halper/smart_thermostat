@@ -19,9 +19,6 @@ const uint64_t heaterAddress = rAddress[HEATER_ADDRESS_POS];
 const uint64_t forwarderAddress = rAddress[FORWARDER_ADDRESS_POS];
 
 const bool isForwarding = true;
-const long timeoutPeriod = 15000000;
-
-const float testingTempPoint = 24.0;
 
 struct tempHumRecord {
   uint64_t sensAddr;
@@ -30,33 +27,38 @@ struct tempHumRecord {
   float heatInd;
 };
 typedef struct tempHumRecord Record;
-typedef enum hr{ NO_SIG, ON, OFF, SEND, NONE } HeaterRequest;
-typedef enum pc{ GET_DATA, HEATER_ON, HEATER_OFF, HEATER_STATUS, TEST_HEATER, TEST_TEMP } PiCommand;
+typedef enum hr{ NO_SIG, ON, OFF, NONE } HeaterRequest;
+typedef enum pc{ GET_DATA, HEATER_ON, HEATER_OFF, TEST_HEATER } PiCommand;
 PiCommand piCommand;
+
+void setupRadio() {
+  radio.begin();  
+  radio.setDataRate( RF24_250KBPS );
+  delay(100);
+  radio.setPALevel(RF24_PA_MAX);
+  radio.setChannel( CHANNEL );
+  //radio.enableAckPayload();
+  radio.setRetries(3, 15); // delay, count
+  // Open a single pipe for PRX to receive data
+  radio.setPayloadSize(sizeof(HeaterRequest));
+  radio.openWritingPipe(isForwarding ? forwarderAddress: heaterAddress);
+  radio.stopListening(); // receive incoming requests from master node
+}
 
 void setup() {
   Serial.begin(9600);
   dht.begin();
-  radio.begin();
-  radio.setPALevel(RF24_PA_MAX);
-  radio.setChannel( CHANNEL );
-  radio.setAutoAck(true);
-  radio.enableAckPayload();
-  radio.openReadingPipe(1, selfAddress);
-  radio.openWritingPipe(isForwarding ? forwarderAddress: heaterAddress);
-  radio.stopListening();
-  radio.setRetries(15,15); // delay, count
+  setupRadio();
   Serial.println("Arduino is ready!");
   Serial.println("0. Get data");
   Serial.println("1. Turn on the heater");
   Serial.println("2. Turn off the heater");
-  Serial.println("3. Get heater status");
-  Serial.println("4. Test the connection to the heater");
+  Serial.println("3. Test the connection to the heater");
 }
 
 void loop() {
   // wait for a command from rasPi 
-  while (!Serial.available()) { } 
+  while (!Serial.available());
   if (Serial.available() > 0) {  
     piCommand = (int) ((char)Serial.read() - '0');
   }  
@@ -71,83 +73,23 @@ void loop() {
     case TEST_HEATER:
       testHeaterConnection();
       break;      
-    case TEST_TEMP:
-      testTemp();
-      break;
-    case HEATER_STATUS:
-      HeaterRequest hStat = getStatusOfHeater();
-      String sHeat = hStat == ON ? "ON" : hStat == OFF ? "OFF" : "UNKNOWN";
-      Serial.println(sHeat);
-      break;
     default:
       // nothing
       break;
   }
 }
 
-bool isForwarderRadioAvailable() {
-  unsigned long waitStart = micros(); // Set up a timeout period, get the current microseconds
-  while ( ! radio.available() ){        // While nothing is received
-    if (micros() - waitStart > timeoutPeriod ){   // If waited longer than 10sec, indicate timeout and exit while loop
-        return false;
-    }     
- }
- return true;
-}
-
-bool sendRequest(HeaterRequest command) {
-  radio.stopListening();
-  bool timeout = false;
-  unsigned long waitStart = micros(); // Set up a timeout period, get the current microseconds
-  
-  while(!timeout) {
-    timeout = micros() - waitStart > timeoutPeriod;
-    if(radio.write( &command, sizeof(HeaterRequest) )) {
-      if(radio.isAckPayloadAvailable()){ // clears the internal flag which indicates a payload is available
-        HeaterRequest temp = NONE; // we don't need ack response from this transmission so getting rid of it
-        radio.read(&temp, sizeof(HeaterRequest));
-      }
-      return true;
-    }
-  }
-  Serial.println("ERROR: Could not forward request!");
-  return false;
-}
-
-HeaterRequest getRequestResponse(){
-  HeaterRequest incomingStatus = NONE;
-  radio.startListening();
-  if(isForwarderRadioAvailable()){
-    radio.read(&incomingStatus, sizeof(HeaterRequest));
-  } else {
-    Serial.println("ERROR: Forwarder is not transmitting!");
-  }
-  radio.stopListening();
-  return incomingStatus;
-}
-
-HeaterRequest forwardRequest(HeaterRequest command){  
-  bool isRequestSent = sendRequest(command);
-  return isRequestSent ? getRequestResponse() : NONE;
-}
-
-HeaterRequest passCommandToReceiver(HeaterRequest command) {
+bool passCommandToReceiver(HeaterRequest command) {
   // this function sends heaterRequest to the arduino attached to the heater
-  // if there is an error NONE signal is sent
-  return forwardRequest(command);
-}
-
-HeaterRequest getStatusOfHeater() {
-  // this function receives the status of the heater from the arduino attached to it
-  return passCommandToReceiver(SEND);
+  return radio.write( &command, sizeof(HeaterRequest)); 
 }
 
 bool turnOnTheHeater() {
-  return passCommandToReceiver(ON) == ON;
+  return passCommandToReceiver(ON);
 }
 
 bool turnOffTheHeater() {
-  return passCommandToReceiver(OFF) == OFF;
+  return passCommandToReceiver(OFF);
 }
 
 void switchHeater(PiCommand switchCommand) {
@@ -254,24 +196,4 @@ void testHeaterConnection() {
     Serial.println("ERROR: Test failed!");
   }
   
-}
-
-void testTemp() {
-  unsigned long started_waiting_at = micros();
-  bool rslt = false;
-  Record rec;
-  while (1) { 
-    delay(500);
-    rec = getSelfSensorData();
-    if (micros() - started_waiting_at > timeoutPeriod ){            // If waited longer than 10sec, indicate timeout and exit while loop
-      break;
-    }
-    if (rec.temp > testingTempPoint) {
-      rslt = turnOnTheHeater();
-    }
-  }
-  if (rslt) {
-    turnOffTheHeater();
-  }
-  Serial.println(rec.temp);    
 }
