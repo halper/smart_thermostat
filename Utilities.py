@@ -5,9 +5,7 @@ PI_COMMANDS = {
     'GET_DATA': str.encode("0"),
     'HEATER_ON': str.encode("1"),
     'HEATER_OFF': str.encode("2"),
-    'HEATER_STATUS': str.encode("3"),
-    'TEST_HEATER': str.encode("4"),
-    'TEST_TEMP': str.encode("5")
+    'TEST_HEATER': str.encode("3")
 }
 
 LOGGER = None

@@ -20,7 +20,7 @@ try:
     # wait for setup phase
     while True:
         read_ser = ser.readline().decode().strip()
-        if '4. Test the connection' in read_ser:
+        if 'Test the connection' in read_ser:
             time.sleep(5)
             break
     log_message("Heater status is: {}\n".format(HEATER.get_status()))
@@ -28,6 +28,6 @@ try:
         log_message("Reading schedule file")
         HEATER.set_status(schedule.get_pref_temp())
         log_message('Sleeping for 5 minutes!')
-        time.sleep(300)
+        time.sleep(10)
 finally:
     GPIO.cleanup()

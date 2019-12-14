@@ -1,11 +1,9 @@
 from Utilities import PI_COMMANDS, log_message, get_logger
-from datetime import datetime, timedelta
 from TempSensor import TempSensor
-
+import time
 
 class Heater:
     LAST_STAT = 'NONE'
-    STATUS_LAST_CHECK = -1
     COMMANDS = {'ON', 'OFF'}
 
     def __init__(self, ser):
@@ -23,21 +21,17 @@ class Heater:
         if on_off_command not in self.COMMANDS:
             get_logger().error('Heater\'s burner stat is not right! {}'.format(on_off_command))
             return False
-        if self.check_status(on_off_command):
-            return False
         log_message('Turning {} the heater!'.format(str.lower(on_off_command)))
         self.ser.write(PI_COMMANDS['HEATER_{}'.format(on_off_command)])
-        self.reset_heater_stat()
-        # Check if heater status is successfully set
-        if self.LAST_STAT != on_off_command:
-            get_logger().error('Heater status is not set right! Expected: {}, received: {}'.format(on_off_command, self.LAST_STAT))
-            print('Error while setting burner! Check log file!')
+        time.sleep(0.5)
+        response = self.ser.readline().decode().strip()
+        if 'ERROR' in response:
+            print('ERROR', response)
+            get_logger().error('Heater\'s stat could not be set to {}! {}'.format(on_off_command, response))
             return False
+        # Check if heater status is successfully set
+        self.LAST_STAT = on_off_command
         return True
-
-    def reset_heater_stat(self):
-        self.LAST_STAT = 'NONE'
-        self.get_status()
 
     def is_on(self):
         return self.check_status('ON')
@@ -46,15 +40,10 @@ class Heater:
         return self.check_status('OFF')
 
     def check_status(self, status):
-        return str.upper(self.get_status()) == str.upper(status)
+        return str.upper(self.LAST_STAT) == str.upper(status)
 
     def get_status(self):
         # returns ON or OFF
-        # update status every 30 minutes
-        if self.LAST_STAT == 'NONE' or self.STATUS_LAST_CHECK + timedelta(minutes=30) <= datetime.now():
-            self.ser.write(PI_COMMANDS['HEATER_STATUS'])
-            self.LAST_STAT = self.ser.readline().decode().strip()
-            self.STATUS_LAST_CHECK = datetime.now()
         return self.LAST_STAT
 
     def set_status(self, pref_temp):
