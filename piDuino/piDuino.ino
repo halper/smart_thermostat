@@ -28,7 +28,7 @@ struct tempHumRecord {
 };
 typedef struct tempHumRecord Record;
 typedef enum hr{ NO_SIG, ON, OFF, NONE } HeaterRequest;
-typedef enum pc{ GET_DATA, HEATER_ON, HEATER_OFF, TEST_HEATER } PiCommand;
+typedef enum pc{ GET_DATA, HEATER_ON, HEATER_OFF, TEST_HEATER, SEND_ALIVE } PiCommand;
 PiCommand piCommand;
 
 void setupRadio() {
@@ -54,6 +54,7 @@ void setup() {
   Serial.println("1. Turn on the heater");
   Serial.println("2. Turn off the heater");
   Serial.println("3. Test the connection to the heater");
+  Serial.println("4. Send alive signal");
 }
 
 void loop() {
@@ -73,6 +74,9 @@ void loop() {
     case TEST_HEATER:
       testHeaterConnection();
       break;      
+    case SEND_ALIVE:
+      sendAlive();
+      break;
     default:
       // nothing
       break;
@@ -90,6 +94,14 @@ bool turnOnTheHeater() {
 
 bool turnOffTheHeater() {
   return passCommandToReceiver(OFF);
+}
+
+void sendAlive() {
+  if(passCommandToReceiver(NONE)){
+    Serial.println("SUCCESS: Alive signal is sent!");
+  } else {
+    Serial.println("ERROR: Alive signal is not sent!");
+  }
 }
 
 void switchHeater(PiCommand switchCommand) {

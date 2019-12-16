@@ -22,7 +22,14 @@ const uint64_t forwarderAddress = rAddress[FORWARDER_ADDRESS_POS];
 // Is the heater connected to the Normally close port?
 bool connectedToNC = true;
 const bool isForwarding = true;
-const long timeoutPeriod = 5000000;
+
+// If we don't have radio communication for some hours
+// the heater will switch state
+const long onTimeoutPeriod = 1000*60*60*2; // 2 hours
+const long offTimeoutPeriod = onTimeoutPeriod*2;
+long timeoutPeriod = offTimeoutPeriod;
+unsigned long timer = millis();
+bool communicationError = false;
 
 void setupRadio() {
   radio.begin();  
@@ -36,6 +43,20 @@ void setupRadio() {
   radio.openReadingPipe(1, selfAddress);  
   radio.startListening();  
 }
+const int ledPin =  LED_BUILTIN;// the number of the LED pin
+
+// Variables will change:
+int ledState = LOW;             // ledState used to set the LED
+
+// Generally, you should use "unsigned long" for variables that hold time
+// The value will quickly become too large for an int to store
+unsigned long previousMillis = 0;        // will store last time LED was updated
+
+// constants won't change:
+const long interval = 500;           // interval at which to blink (milliseconds)
+void setupLED() {
+   pinMode(ledPin, OUTPUT);
+}
 
 void setup() {
   Serial.begin(9600);
@@ -45,13 +66,31 @@ void setup() {
   // if NC is used HIGH turns on else if NO is used HIGH turns off
   digitalWrite(relay, connectedToNC ? HIGH : LOW);
   setupRadio();
+  setupLED();
 }
 
 void loop() {
   // listen for the incoming message
   // set the switch state accordingly
   // delay(500);  
-  while ( ! radio.available() );
+  while ( ! radio.available() ){
+    if(millis() - timer >= timeoutPeriod) {
+      if (currentStat == OFF) {
+        currentStat = ON;
+        timeoutPeriod = onTimeoutPeriod;
+      } else {
+        currentStat = OFF;
+        timeoutPeriod = offTimeoutPeriod;
+      }
+      
+      switchHeater(currentStat);
+      timer = millis();
+      communicationError = true;
+    }
+    if (communicationError) {
+      blinkLED();
+    }
+  }
   heaterReq = getIncomingState();
   switch (heaterReq) {
     case ON:
@@ -61,9 +100,31 @@ void loop() {
     default:
         break;       
   }
+  
+}
+
+void blinkLED(){
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= interval) {
+    // save the last time you blinked the LED
+    previousMillis = currentMillis;
+
+    // if the LED is off turn it on and vice-versa:
+    if (ledState == LOW) {
+      ledState = HIGH;
+    } else {
+      ledState = LOW;
+    }
+
+    // set the LED with the ledState of the variable:
+    digitalWrite(ledPin, ledState);
+  }
 }
 
 HeaterRequest getIncomingState() {
+  communicationError = false;
+  timer = millis();
   HeaterRequest newState = NONE;  
   Serial.println("Receiving radio signal");      
   radio.read( &newState, sizeof(HeaterRequest) ); 
@@ -72,11 +133,13 @@ HeaterRequest getIncomingState() {
 }
 
 void switchHeater(HeaterRequest incomingHR) {
-  bool requestOn = incomingHR == ON;
-  if(currentStat != incomingHR){    
-    Serial.print("Switching the heater ");
-    Serial.println(requestOn ? "ON" : "OFF");
-    currentStat = incomingHR;
-    digitalWrite(relay, connectedToNC && requestOn ? HIGH : LOW);
+  if (incomingHR == ON || incomingHR == OFF) {
+    bool requestOn = incomingHR == ON;
+    if(currentStat != incomingHR){    
+      Serial.print("Switching the heater ");
+      Serial.println(requestOn ? "ON" : "OFF");
+      currentStat = incomingHR;
+      digitalWrite(relay, connectedToNC && requestOn ? HIGH : LOW);
+    }
   }
 }
