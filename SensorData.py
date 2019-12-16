@@ -1,6 +1,7 @@
 class SensorData:
 
     def __init__(self, raw_data):
+        print(raw_data)
         self.addr, temp, hum, hi = raw_data.rstrip().split("\t")
         self.hum = float(hum)
         self.temp = float(temp)

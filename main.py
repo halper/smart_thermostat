@@ -23,7 +23,7 @@ try:
     # wait for setup phase
     while True:
         read_ser = ser.readline().decode().strip()
-        if 'Test the connection' in read_ser:
+        if 'Send alive signal' in read_ser:
             time.sleep(5)
             break
     log_message("Heater status is: {}\n".format(HEATER.get_status()))
