@@ -34,6 +34,6 @@ try:
         while datetime.now() - set_status_time < timedelta(minutes=5):
             current_temp = TEMP_SENSOR.get_current_temp()
             TEMP_SENSOR.temperature_readings.append(current_temp)
-            time.sleep(5)
+            time.sleep(0.2)
 finally:
     GPIO.cleanup()
