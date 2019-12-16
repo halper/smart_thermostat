@@ -24,7 +24,7 @@ try:
     while True:
         read_ser = ser.readline().decode().strip()
         print('{}'.format(read_ser))
-        if '3. Test the connection' in read_ser:
+        if 'Send alive signal' in read_ser:
             time.sleep(2)
             break
     while True:

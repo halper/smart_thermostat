@@ -1,5 +1,5 @@
 import time
-from Utilities import PI_COMMANDS, log_message
+from Utilities import PI_COMMANDS
 from SensorData import SensorData
 
 
