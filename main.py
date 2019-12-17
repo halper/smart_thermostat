@@ -18,22 +18,28 @@ HEATER = Heater(ser)
 TEMP_SENSOR = TempSensor(ser)
 schedule = Schedule('schedule')
 
-try:
-    log_message("The script is started")
-    # wait for setup phase
-    while True:
-        read_ser = ser.readline().decode().strip()
-        if 'Send alive signal' in read_ser:
-            time.sleep(5)
-            break
-    log_message("Heater status is: {}\n".format(HEATER.get_status()))
-    while True:
-        log_message("Reading schedule file")
-        HEATER.set_status(schedule.get_pref_temp())
-        set_status_time = datetime.now()
-        while datetime.now() - set_status_time < timedelta(minutes=5):
-            current_temp = TEMP_SENSOR.get_current_temp()
-            TEMP_SENSOR.temperature_readings.append(current_temp)
-            time.sleep(0.2)
-finally:
-    GPIO.cleanup()
+def main_logic():
+    try:
+        log_message("The script is started")
+        # wait for setup phase
+        while True:
+            read_ser = ser.readline().decode().strip()
+            if 'Send alive signal' in read_ser:
+                time.sleep(5)
+                break
+        log_message("Heater status is: {}\n".format(HEATER.get_status()))
+        while True:
+            log_message("Reading schedule file")
+            HEATER.set_status(schedule.get_pref_temp())
+            set_status_time = datetime.now()
+            while datetime.now() - set_status_time < timedelta(minutes=5):
+                current_temp = TEMP_SENSOR.get_current_temp()
+                TEMP_SENSOR.temperature_readings.append(current_temp)
+                time.sleep(0.2)
+    except Exception as e:
+        get_logger().error("There is an error", e)
+        main_logic()
+    finally:
+        GPIO.cleanup()
+
+main_logic()
