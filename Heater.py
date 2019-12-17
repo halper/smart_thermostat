@@ -56,7 +56,7 @@ class Heater:
             if self.turn_on():
                 log_message('It is kinda chilly with {:.1f}oC - {:.1f}oC is preferred'.format(avg_temp, pref_temp))
         else:
-            self.ser.write('SEND_ALIVE')
+            self.ser.write(PI_COMMANDS['SEND_ALIVE'])
             time.sleep(0.2)
             response = self.ser.readline().decode().strip()
             if 'ERROR' in response:
