@@ -52,7 +52,7 @@ class Heater:
         if avg_temp >= pref_temp + 0.2:
             if self.turn_off():
                 log_message('It gets hot with {:.1f}oC - {:.1f}oC is preferred'.format(avg_temp, pref_temp))
-        elif avg_temp <= pref_temp - 0.3:
+        elif avg_temp <= pref_temp - 0.1:
             if self.turn_on():
                 log_message('It is kinda chilly with {:.1f}oC - {:.1f}oC is preferred'.format(avg_temp, pref_temp))
         else:
