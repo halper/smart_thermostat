@@ -18,7 +18,7 @@ def get_logger():
         return LOGGER
     else:
         logger = logging.getLogger()
-        logging.basicConfig(filename='arduino.log', filemode='w+', format='%(asctime)s - %(message)s',
+        logging.basicConfig(filename='arduino.log', filemode='a+', format='%(asctime)s - %(message)s',
                             datefmt='%d-%b-%y %H:%M:%S')
         logger.setLevel(logging.INFO)
         LOGGER = logger
